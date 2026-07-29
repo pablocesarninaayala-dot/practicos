@@ -18,37 +18,47 @@ Route::redirect('/', '/login');
 Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', function () {
-        $totalClientes = Cliente::count();
-        $totalVehiculos = Vehiculo::count();
-        $totalServicios = Servicio::count();
-        $totalIngresos = Servicio::sum('precio');
-        $ultimosServicios = Servicio::with('vehiculo.cliente')
-            ->latest()
-            ->take(5)
-            ->get();
-        $vehiculosPorMarca = Vehiculo::select('marca', DB::raw('count(*) as total'))
-            ->groupBy('marca')
-            ->orderByDesc('total')
-            ->take(5)
-            ->get();
-        $meses = [];
-        $ingresosPorMes = [];
 
-        for ($i = 5; $i >= 0; $i--) {
-            $fecha = now()->subMonths($i);
-            $meses[] = ucfirst($fecha->translatedFormat('M'));
+    // --- Vista simplificada para empleados ---
+    if (!auth()->user()->isAdmin()) {
+        return view('dashboard-empleado', [
+            'totalClientes'  => Cliente::count(),
+            'totalVehiculos' => Vehiculo::count(),
+        ]);
+    }
 
-            $ingresosPorMes[] = Servicio::whereYear('created_at', $fecha->year)
-                ->whereMonth('created_at', $fecha->month)
-                ->sum('precio');
-        }
+    // --- Vista completa para admin (la que ya tenías) ---
+    $totalClientes = Cliente::count();
+    $totalVehiculos = Vehiculo::count();
+    $totalServicios = Servicio::count();
+    $totalIngresos = Servicio::sum('precio');
+    $ultimosServicios = Servicio::with('vehiculo.cliente')
+        ->latest()
+        ->take(5)
+        ->get();
+    $vehiculosPorMarca = Vehiculo::select('marca', DB::raw('count(*) as total'))
+        ->groupBy('marca')
+        ->orderByDesc('total')
+        ->take(5)
+        ->get();
+    $meses = [];
+    $ingresosPorMes = [];
 
-        return view('dashboard', compact(
-            'totalClientes', 'totalVehiculos', 'totalServicios', 'totalIngresos',
-            'ultimosServicios', 'vehiculosPorMarca', 'meses', 'ingresosPorMes'
-        ));
+    for ($i = 5; $i >= 0; $i--) {
+        $fecha = now()->subMonths($i);
+        $meses[] = ucfirst($fecha->translatedFormat('M'));
 
-    })->name('dashboard');
+        $ingresosPorMes[] = Servicio::whereYear('created_at', $fecha->year)
+            ->whereMonth('created_at', $fecha->month)
+            ->sum('precio');
+    }
+
+    return view('dashboard', compact(
+        'totalClientes', 'totalVehiculos', 'totalServicios', 'totalIngresos',
+        'ultimosServicios', 'vehiculosPorMarca', 'meses', 'ingresosPorMes'
+    ));
+
+})->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
