@@ -37,6 +37,8 @@ WORKDIR /var/www/html
 # Copiar primero los archivos de dependencias para aprovechar la caché de Docker
 COPY composer.json composer.lock ./
 
+
+
 RUN composer install \
     --no-interaction \
     --no-dev \

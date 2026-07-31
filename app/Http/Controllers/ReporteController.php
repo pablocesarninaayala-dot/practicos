@@ -29,7 +29,7 @@ class ReporteController extends Controller
         $servicios = $query->latest()->get();
         $clientes = Cliente::orderBy('nombre')->get();
 
-        $resumenMensual = Servicio::selectRaw('YEAR(created_at) as anio, MONTH(created_at) as mes, SUM(precio) as total, COUNT(*) as cantidad')
+        $resumenMensual = Servicio::selectRaw('EXTRACT(YEAR FROM created_at) as anio, EXTRACT(MONTH FROM created_at) as mes, SUM(precio) as total, COUNT(*) as cantidad')
             ->groupBy('anio', 'mes')
             ->orderByDesc('anio')
             ->orderByDesc('mes')

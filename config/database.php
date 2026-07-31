@@ -99,6 +99,19 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        'mysql_old' => [
+            'driver' => 'mysql',
+            'host' => env('MYSQL_HOST'),
+            'port' => env('MYSQL_PORT'),
+            'database' => env('MYSQL_DATABASE'),
+            'username' => env('MYSQL_USERNAME'),
+            'password' => env('MYSQL_PASSWORD'),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+         ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),
