@@ -1,3 +1,26 @@
+# =========================
+# ETAPA 1: COMPILAR VITE
+# =========================
+FROM node:22-alpine AS frontend
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+
+RUN npm ci
+
+COPY resources ./resources
+COPY public ./public
+COPY vite.config.js ./
+COPY postcss.config.js ./
+COPY tailwind.config.js ./
+
+RUN npm run build
+
+
+# =========================
+# ETAPA 2: LARAVEL / PHP
+# =========================
 FROM php:8.3-cli
 
 RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' \
@@ -40,6 +63,9 @@ RUN composer install \
 
 COPY . .
 
+# Copiar los archivos compilados por Vite
+COPY --from=frontend /app/public/build ./public/build
+
 RUN composer dump-autoload --optimize \
     && php artisan package:discover --ansi \
     && mkdir -p storage/framework/cache \
@@ -50,4 +76,4 @@ RUN composer dump-autoload --optimize \
 
 EXPOSE 10000
 
-CMD sh -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"
+CMD sh -c "php artisan optimize:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"
